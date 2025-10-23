@@ -1,1 +1,0 @@
-studentsystem.Displayable

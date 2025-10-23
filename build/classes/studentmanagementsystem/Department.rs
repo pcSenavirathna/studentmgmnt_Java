@@ -1,2 +1,0 @@
-studentsystem.Department
-StudentManagementSystem.Department

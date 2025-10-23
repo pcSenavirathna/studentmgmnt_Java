@@ -1,2 +1,0 @@
-studentsystem.DBConnection
-StudentManagementSystem.DBConnection

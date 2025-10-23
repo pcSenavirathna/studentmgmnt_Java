@@ -1,2 +1,0 @@
-StudentManagementSystem.CourseDAO
-studentsystem.CourseDAO

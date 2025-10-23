@@ -1,2 +1,0 @@
-studentsystem.Course
-StudentManagementSystem.Course

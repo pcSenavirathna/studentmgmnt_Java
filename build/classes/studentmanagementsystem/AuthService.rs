@@ -1,2 +1,0 @@
-studentsystem.AuthService
-StudentManagementSystem.AuthService

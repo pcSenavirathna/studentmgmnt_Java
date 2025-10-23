@@ -1,2 +1,0 @@
-StudentManagementSystem.User
-studentsystem.User
