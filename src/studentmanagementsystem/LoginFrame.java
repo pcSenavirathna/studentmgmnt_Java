@@ -72,7 +72,7 @@ public class LoginFrame extends JFrame {
         formPanel.add(passwordField, gbc);
 
         // Login Button
-        loginButton = new JButton("🔐 Login"); // Set initial text to match reset
+        loginButton = new JButton("Login"); // Set initial text to match reset
         loginButton.setBackground(new Color(70, 130, 180));
         loginButton.setForeground(Color.WHITE);
         loginButton.setFont(new Font("Arial", Font.BOLD, 14));
@@ -85,26 +85,26 @@ public class LoginFrame extends JFrame {
         formPanel.add(loginButton, gbc);
 
         // Test Credentials Panel
-        JPanel testPanel = new JPanel();
-        testPanel.setBackground(new Color(255, 250, 240));
-        testPanel.setBorder(BorderFactory.createTitledBorder("Test Credentials"));
-        testPanel.setLayout(new GridLayout(2, 1, 5, 5));
+        // JPanel testPanel = new JPanel();
+        // testPanel.setBackground(new Color(255, 250, 240));
+        // testPanel.setBorder(BorderFactory.createTitledBorder("Test Credentials"));
+        // testPanel.setLayout(new GridLayout(2, 1, 5, 5));
         
-        JLabel adminLabel = new JLabel("Admin: admin / admin123");
-        JLabel studentLabel = new JLabel("Student: student1 / student123");
+        // JLabel adminLabel = new JLabel("Admin: admin / admin123");
+        // JLabel studentLabel = new JLabel("Student: student1 / student123");
         
-        adminLabel.setFont(new Font("Arial", Font.PLAIN, 11));
-        studentLabel.setFont(new Font("Arial", Font.PLAIN, 11));
-        adminLabel.setForeground(Color.DARK_GRAY);
-        studentLabel.setForeground(Color.DARK_GRAY);
+        // adminLabel.setFont(new Font("Arial", Font.PLAIN, 11));
+        // studentLabel.setFont(new Font("Arial", Font.PLAIN, 11));
+        // adminLabel.setForeground(Color.DARK_GRAY);
+        // studentLabel.setForeground(Color.DARK_GRAY);
         
-        testPanel.add(adminLabel);
-        testPanel.add(studentLabel);
+        // testPanel.add(adminLabel);
+        // testPanel.add(studentLabel);
 
         // Add panels to main panel
         mainPanel.add(titlePanel, BorderLayout.NORTH);
         mainPanel.add(formPanel, BorderLayout.CENTER);
-        mainPanel.add(testPanel, BorderLayout.SOUTH);
+        // mainPanel.add(testPanel, BorderLayout.SOUTH);
 
         // Add main panel to frame
         add(mainPanel);
@@ -168,7 +168,7 @@ public class LoginFrame extends JFrame {
                 passwordField.requestFocusInWindow();
 
                 // Reset button
-                loginButton.setText("🔐 Login");
+                loginButton.setText("Login");
                 loginButton.setEnabled(true);
             }
         }

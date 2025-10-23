@@ -22,7 +22,7 @@ public class StudentPageFrame extends JFrame {
     public StudentPageFrame() {
         setTitle("Student Information Management System - Student");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(1050, 700);
+        setSize(1100, 700);
         setLocationRelativeTo(null);
         setLayout(null);
 
@@ -32,11 +32,12 @@ public class StudentPageFrame extends JFrame {
         topPanel.setBounds(0, 0, 1050, 60);
 
         JButton backButton = new JButton();
-        backButton.setBounds(10, 10, 40, 40);
+        backButton.setBounds(10, 10, 30, 30);
         backButton.setBackground(new Color(255, 0, 0));
         backButton.setBorderPainted(false);
         backButton.setFocusPainted(false);
-        backButton.setIcon(new ImageIcon(new ImageIcon("src/studentmanagementsystem/images/back_arrow.png").getImage().getScaledInstance(30, 30, Image.SCALE_SMOOTH)));
+        backButton.setIcon(new ImageIcon(
+                new ImageIcon("src/images/back_arrow.png").getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH)));
         backButton.addActionListener(e -> {
             dispose();
             new HomePageFrame();
@@ -69,16 +70,17 @@ public class StudentPageFrame extends JFrame {
 
         String[] labels = {"Student ID", "Name", "NIC", "DOB", "Gender", "Email", "Department ID"};
         JTextField[] fields = {studentIdField, nameField, nicField, null, null, emailField, deptIdField};
-        int y = 30;
+        int y = 40;
         for (int i = 0; i < labels.length; i++) {
-            JButton lblBtn = new JButton(labels[i]);
-            lblBtn.setBounds(20, y, 120, 35);
-            lblBtn.setBackground(new Color(70, 130, 180));
-            lblBtn.setForeground(Color.WHITE);
-            lblBtn.setFont(new Font("Arial", Font.BOLD, 14));
-            lblBtn.setFocusPainted(false);
-            lblBtn.setEnabled(false);
-            formPanel.add(lblBtn);
+            // use JLabel (opaque) so text remains white instead of gray (disabled JButton)
+            JLabel lbl = new JLabel(labels[i], SwingConstants.CENTER);
+            lbl.setBounds(20, y, 120, 35);
+            lbl.setOpaque(true);
+            lbl.setBackground(new Color(70, 130, 180));
+            lbl.setForeground(Color.WHITE);
+            lbl.setFont(new Font("Arial", Font.BOLD, 14));
+            lbl.setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 0));
+            formPanel.add(lbl);
 
             if (labels[i].equals("Gender")) {
                 genderCombo.setBounds(150, y, 220, 35);
@@ -96,21 +98,21 @@ public class StudentPageFrame extends JFrame {
 
         // Action buttons
         JButton addBtn = new JButton("Add");
-        addBtn.setBounds(20, 370, 90, 40);
+        addBtn.setBounds(50, 370, 90, 40);
         addBtn.setBackground(new Color(25, 25, 112));
         addBtn.setForeground(Color.WHITE);
         addBtn.setFont(new Font("Arial", Font.BOLD, 14));
         formPanel.add(addBtn);
 
         JButton updateBtn = new JButton("Update");
-        updateBtn.setBounds(120, 370, 90, 40);
+        updateBtn.setBounds(160, 370, 90, 40);
         updateBtn.setBackground(new Color(25, 25, 112));
         updateBtn.setForeground(Color.WHITE);
         updateBtn.setFont(new Font("Arial", Font.BOLD, 14));
         formPanel.add(updateBtn);
 
         JButton clearBtn = new JButton("Clear");
-        clearBtn.setBounds(220, 370, 90, 40);
+        clearBtn.setBounds(270, 370, 90, 40);
         clearBtn.setBackground(new Color(25, 25, 112));
         clearBtn.setForeground(Color.WHITE);
         clearBtn.setFont(new Font("Arial", Font.BOLD, 14));
@@ -142,7 +144,7 @@ public class StudentPageFrame extends JFrame {
         tableModel = new DefaultTableModel(tableHeaders, 0);
         JTable studentTable = new JTable(tableModel);
         JScrollPane tableScroll = new JScrollPane(studentTable);
-        tableScroll.setBounds(450, 110, 490, 450);
+        tableScroll.setBounds(430, 110, 640, 450);
 
         // Popup menu for table
         JPopupMenu popupMenu = new JPopupMenu();

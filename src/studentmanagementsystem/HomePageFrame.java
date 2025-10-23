@@ -22,10 +22,12 @@ public class HomePageFrame extends JFrame {
         logoPanel.setPreferredSize(new Dimension(200, 200));
         logoPanel.setMaximumSize(new Dimension(200, 200));
         logoPanel.setBackground(Color.WHITE);
+        // center the logo panel inside the leftPanel
+        logoPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         // Load logo image
-        ImageIcon logoIcon = new ImageIcon("src/studentmanagementsystem/images/logo.png"); // Correct relative path
-        Image logoImg = logoIcon.getImage().getScaledInstance(180, 180, Image.SCALE_SMOOTH);
+        ImageIcon logoIcon = new ImageIcon("src/images/logo.png"); // Correct relative path
+        Image logoImg = logoIcon.getImage().getScaledInstance(200, 200, Image.SCALE_SMOOTH);
         JLabel logoLabel = new JLabel(new ImageIcon(logoImg), JLabel.CENTER);
 
         logoPanel.add(logoLabel);
@@ -34,7 +36,9 @@ public class HomePageFrame extends JFrame {
         JLabel systemLabel = new JLabel("<html><center>Student Information<br>Management System</center></html>");
         systemLabel.setFont(new Font("Arial", Font.BOLD, 22));
         systemLabel.setForeground(Color.WHITE);
+        // center the label under the logo
         systemLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        systemLabel.setHorizontalAlignment(SwingConstants.CENTER);
 
         // Log Out button
         JButton logoutButton = new JButton("Log Out");
@@ -77,14 +81,14 @@ public class HomePageFrame extends JFrame {
                     g.fillOval(0, 0, 40, 40);
                 }
             };
-            circlePanel.setBounds(120, y, 40, 40);
+            circlePanel.setBounds(70, y, 40, 40);
 
             JButton featureButton = new JButton(feature);
             featureButton.setFont(new Font("Arial", Font.BOLD, 18));
             featureButton.setBackground(new Color(70, 130, 180));
             featureButton.setForeground(Color.WHITE);
             featureButton.setFocusPainted(false);
-            featureButton.setBounds(180, y, 220, 40);
+            featureButton.setBounds(130, y, 220, 40);
 
             // Add navigation for Student button
             if (feature.equals("Student")) {

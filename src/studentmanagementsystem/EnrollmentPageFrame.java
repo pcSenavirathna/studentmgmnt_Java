@@ -23,11 +23,12 @@ public class EnrollmentPageFrame extends JFrame {
         topPanel.setBounds(0, 0, 1070, 60);
 
         JButton backButton = new JButton();
-        backButton.setBounds(10, 10, 40, 40);
+        backButton.setBounds(10, 10, 30, 30);
         backButton.setBackground(new Color(255, 0, 0));
         backButton.setBorderPainted(false);
         backButton.setFocusPainted(false);
-        backButton.setIcon(new ImageIcon(new ImageIcon("src/studentmanagementsystem/images/back_arrow.png").getImage().getScaledInstance(30, 30, Image.SCALE_SMOOTH)));
+        backButton.setIcon(new ImageIcon(
+                new ImageIcon("src/images/back_arrow.png").getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH)));
         backButton.addActionListener(e -> {
             dispose();
             new HomePageFrame();
@@ -57,14 +58,15 @@ public class EnrollmentPageFrame extends JFrame {
         JTextField[] fields = {enrollIdField, studentIdField, courseIdField, enrollDateField, gradeField};
         int y = 30;
         for (int i = 0; i < labels.length; i++) {
-            JButton lblBtn = new JButton(labels[i]);
-            lblBtn.setBounds(20, y, 150, 35);
-            lblBtn.setBackground(new Color(70, 130, 180));
-            lblBtn.setForeground(Color.WHITE);
-            lblBtn.setFont(new Font("Arial", Font.BOLD, 14));
-            lblBtn.setFocusPainted(false);
-            lblBtn.setEnabled(false);
-            formPanel.add(lblBtn);
+            // use JLabel so the text remains white (disabled JButton shows gray)
+            JLabel lbl = new JLabel(labels[i], SwingConstants.LEFT);
+            lbl.setBounds(20, y, 150, 35);
+            lbl.setOpaque(true);
+            lbl.setBackground(new Color(70, 130, 180));
+            lbl.setForeground(Color.WHITE);
+            lbl.setFont(new Font("Arial", Font.BOLD, 14));
+            lbl.setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 0));
+            formPanel.add(lbl);
 
             fields[i].setBounds(180, y, 210, 35);
             fields[i].setFont(new Font("Arial", Font.PLAIN, 14));
@@ -74,14 +76,14 @@ public class EnrollmentPageFrame extends JFrame {
 
         // Action buttons
         JButton addBtn = new JButton("Add");
-        addBtn.setBounds(12, 370, 90, 40);
+        addBtn.setBounds(50, 300, 90, 40);
         addBtn.setBackground(new Color(25, 25, 112));
         addBtn.setForeground(Color.WHITE);
         addBtn.setFont(new Font("Arial", Font.BOLD, 14));
         formPanel.add(addBtn);
 
         JButton updateBtn = new JButton("Update");
-        updateBtn.setBounds(112, 370, 90, 40);
+        updateBtn.setBounds(160, 300, 90, 40);
         updateBtn.setBackground(new Color(25, 25, 112));
         updateBtn.setForeground(Color.WHITE);
         updateBtn.setFont(new Font("Arial", Font.BOLD, 14));
@@ -89,7 +91,7 @@ public class EnrollmentPageFrame extends JFrame {
 
 
         JButton clearBtn = new JButton("Clear");
-        clearBtn.setBounds(212, 370, 90, 40);
+        clearBtn.setBounds(270, 300, 90, 40);
         clearBtn.setBackground(new Color(25, 25, 112));
         clearBtn.setForeground(Color.WHITE);
         clearBtn.setFont(new Font("Arial", Font.BOLD, 14));
