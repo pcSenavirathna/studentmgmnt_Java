@@ -1,0 +1,29 @@
+# NetBeans / Java
+/build/
+/dist/
+/nbproject/private/
+/build/classes/
+/nbbuild/
+/nbdist/
+/*.class
+*.log
+*.tmp
+*.bak
+
+# IDEs
+.vscode/
+*.user
+*.suo
+
+# environment / secrets
+.env
+
+# Node (if present)
+node_modules/
+
+# Optional: docs, archives, and large vendor source you don't want in repo
+lib/**/doc/
+lib/**/*.zip
+lib/**/src/
+*.jar
+manifest.mf
