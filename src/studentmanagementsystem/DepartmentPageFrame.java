@@ -3,6 +3,8 @@ package StudentManagementSystem;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.sql.*;
@@ -163,6 +165,108 @@ public class DepartmentPageFrame extends JFrame {
             }
         });
 
+        // ---------- Add popup menu for right-click row actions ----------
+        JPopupMenu popupMenu = new JPopupMenu();
+        JMenuItem deleteItem = new JMenuItem("Delete");
+        JMenuItem updateItem = new JMenuItem("Update");
+        popupMenu.add(deleteItem);
+        popupMenu.add(updateItem);
+
+        deptTable.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                int row = deptTable.rowAtPoint(e.getPoint());
+                if (row >= 0) {
+                    deptTable.getSelectionModel().setSelectionInterval(row, row);
+                    if (SwingUtilities.isRightMouseButton(e)) {
+                        popupMenu.show(deptTable, e.getX(), e.getY());
+                    }
+                }
+            }
+        });
+
+        // Delete action
+        deleteItem.addActionListener(e -> {
+            int row = deptTable.getSelectedRow();
+            if (row >= 0) {
+                int deptId = (int) tableModel.getValueAt(row, 0); // adjust index if ID column differs
+                int confirm = JOptionPane.showConfirmDialog(this, "Delete this department?", "Confirm Delete",
+                        JOptionPane.YES_NO_OPTION);
+                if (confirm == JOptionPane.YES_OPTION) {
+                    boolean ok = departmentDAO.deleteDepartment(deptId);
+                    if (ok) {
+                        JOptionPane.showMessageDialog(this, "Department deleted", "Success",
+                                JOptionPane.INFORMATION_MESSAGE);
+                        loadDepartments();
+                        clearFields();
+                    } else {
+                        JOptionPane.showMessageDialog(this, "Failed to delete", "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            }
+        });
+
+        // Update action: populate form fields so user can edit and press Update button
+        updateItem.addActionListener(e -> {
+            int row = deptTable.getSelectedRow();
+            if (row >= 0) {
+                deptIdField.setText(tableModel.getValueAt(row, 0).toString());
+                deptNameField.setText(tableModel.getValueAt(row, 1).toString());
+                buildingField.setText(tableModel.getValueAt(row, 2).toString());
+                phoneField.setText(tableModel.getValueAt(row, 3).toString());
+                headField.setText(tableModel.getValueAt(row, 4).toString());
+                deptIdField.setEditable(false); // prevent changing PK while editing
+            }
+        });
+
+        // ---------- Wire existing Update button to save edits ----------
+        // assume updateBtn is already created earlier in the frame
+        updateBtn.addActionListener(ev -> {
+            try {
+                int id = Integer.parseInt(deptIdField.getText().trim());
+                String name = deptNameField.getText().trim();
+                String building = buildingField.getText().trim();
+                String phone = phoneField.getText().trim();
+                String head = headField.getText().trim();
+
+                if (name.isEmpty()) {
+                    JOptionPane.showMessageDialog(this, "Please fill required fields", "Input Error",
+                            JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                Department d = new Department(id, name, building, phone, head);
+                boolean ok = departmentDAO.updateDepartment(d);
+                if (ok) {
+                    JOptionPane.showMessageDialog(this, "Department updated", "Success",
+                            JOptionPane.INFORMATION_MESSAGE);
+                    loadDepartments();
+                    clearFields();
+                    deptIdField.setEditable(true);
+                } else {
+                    JOptionPane.showMessageDialog(this, "Update failed", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(this, "ID must be numeric", "Input Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        // Search button logic
+        searchBtn.addActionListener(e -> {
+            String keyword = searchField.getText().trim();
+            if (!keyword.isEmpty()) {
+                List<Department> results = departmentDAO.searchDepartments(keyword);
+                loadDepartments(results);
+            }
+        });
+
+        clearSearchBtn.addActionListener(e -> {
+            searchField.setText("");
+            loadDepartments();
+        });
+
+        clearBtn.addActionListener(e -> clearFields());
+
         loadDepartments();
         setVisible(true);
     }
@@ -180,12 +284,22 @@ public class DepartmentPageFrame extends JFrame {
         }
     }
 
+    // overload used by search
+    private void loadDepartments(List<Department> list) {
+        tableModel.setRowCount(0);
+        for (Department d : list) {
+            tableModel.addRow(
+                    new Object[] { d.getDeptId(), d.getDeptName(), d.getBuilding(), d.getPhone(), d.getHead() });
+        }
+    }
+
     private void clearFields() {
         deptIdField.setText("");
         deptNameField.setText("");
         buildingField.setText("");
         phoneField.setText("");
         headField.setText("");
+        deptIdField.setEditable(true);
     }
     
     public List<Department> getAllDepartments() {

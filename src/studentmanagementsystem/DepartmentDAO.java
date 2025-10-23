@@ -43,4 +43,58 @@ public class DepartmentDAO {
         }
         return departments;
     }
+
+    public boolean updateDepartment(Department dept) {
+        String sql = "UPDATE department SET dept_name = ?, building = ?, phone = ?, head_of_dept = ? WHERE dept_id = ?";
+        try (Connection conn = DBConnection.getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, dept.getDeptName());
+            pstmt.setString(2, dept.getBuilding());
+            pstmt.setString(3, dept.getPhone());
+            pstmt.setString(4, dept.getHead());
+            pstmt.setInt(5, dept.getDeptId());
+            return pstmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.out.println("Error updating department: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public boolean deleteDepartment(int deptId) {
+        String sql = "DELETE FROM department WHERE dept_id = ?";
+        try (Connection conn = DBConnection.getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, deptId);
+            return pstmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.out.println("Error deleting department: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public List<Department> searchDepartments(String keyword) {
+        List<Department> departments = new ArrayList<>();
+        String sql = "SELECT * FROM department WHERE dept_name LIKE ? OR building LIKE ? OR head_of_dept LIKE ?";
+        try (Connection conn = DBConnection.getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            String q = "%" + keyword + "%";
+            pstmt.setString(1, q);
+            pstmt.setString(2, q);
+            pstmt.setString(3, q);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    Department dept = new Department(
+                            rs.getInt("dept_id"),
+                            rs.getString("dept_name"),
+                            rs.getString("building"),
+                            rs.getString("phone"),
+                            rs.getString("head_of_dept"));
+                    departments.add(dept);
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Error searching departments: " + e.getMessage());
+        }
+        return departments;
+    }
 }

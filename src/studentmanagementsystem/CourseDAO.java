@@ -22,6 +22,35 @@ public class CourseDAO {
         }
     }
 
+    public boolean deleteCourse(int courseId) {
+        String sql = "DELETE FROM course WHERE course_id=?";
+        try (Connection conn = DBConnection.getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, courseId);
+            return pstmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.out.println("Error deleting course: " + e.getMessage());
+            return false;
+        }
+    }
+
+    // NEW: update method
+    public boolean updateCourse(Course course) {
+        String sql = "UPDATE course SET course_name = ?, credits = ?, dept_id = ?, semester = ? WHERE course_id = ?";
+        try (Connection conn = DBConnection.getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, course.getCourseName());
+            pstmt.setInt(2, course.getCredits());
+            pstmt.setInt(3, course.getDeptId());
+            pstmt.setString(4, course.getSemester());
+            pstmt.setInt(5, course.getCourseId());
+            return pstmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.out.println("Error updating course: " + e.getMessage());
+            return false;
+        }
+    }
+
     public List<Course> getAllCourses() {
         List<Course> courses = new ArrayList<>();
         String sql = "SELECT * FROM course";
@@ -44,5 +73,26 @@ public class CourseDAO {
         return courses;
     }
 
-    // Add update and delete methods as needed
+    public List<Course> searchCourses(String keyword) {
+        List<Course> courses = new ArrayList<>();
+        String sql = "SELECT * FROM course WHERE course_name LIKE ?";
+        try (Connection conn = DBConnection.getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, "%" + keyword + "%");
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    Course course = new Course(
+                            rs.getInt("course_id"),
+                            rs.getString("course_name"),
+                            rs.getInt("credits"),
+                            rs.getInt("dept_id"),
+                            rs.getString("semester"));
+                    courses.add(course);
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Error searching courses: " + e.getMessage());
+        }
+        return courses;
+    }
 }

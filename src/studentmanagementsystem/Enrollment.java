@@ -17,4 +17,9 @@ public class Enrollment {
     public int getCourseId() { return courseId; }
     public String getEnrollDate() { return enrollDate; }
     public String getGrade() { return grade; }
+
+    // NEW: allow DAO to set generated id
+    public void setEnrollId(int enrollId) {
+        this.enrollId = enrollId;
+    }
 }

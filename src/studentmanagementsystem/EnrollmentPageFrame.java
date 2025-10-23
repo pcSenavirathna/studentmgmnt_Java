@@ -130,9 +130,9 @@ public class EnrollmentPageFrame extends JFrame {
         add(tableScroll);
 
         // Add button logic
+        // Add: do NOT require enrollId (DB generates it)
         addBtn.addActionListener(e -> {
             try {
-                int enrollId = Integer.parseInt(enrollIdField.getText().trim());
                 int studentId = Integer.parseInt(studentIdField.getText().trim());
                 int courseId = Integer.parseInt(courseIdField.getText().trim());
                 String enrollDate = enrollDateField.getText().trim();
@@ -143,9 +143,8 @@ public class EnrollmentPageFrame extends JFrame {
                     return;
                 }
 
-                Enrollment enroll = new Enrollment(enrollId, studentId, courseId, enrollDate, grade);
+                Enrollment enroll = new Enrollment(0, studentId, courseId, enrollDate, grade);
                 boolean success = enrollmentDAO.addEnrollment(enroll);
-
                 if (success) {
                     JOptionPane.showMessageDialog(this, "Enrollment added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
                     loadEnrollments();
@@ -154,16 +153,116 @@ public class EnrollmentPageFrame extends JFrame {
                     JOptionPane.showMessageDialog(this, "Failed to add enrollment!", "Error", JOptionPane.ERROR_MESSAGE);
                 }
             } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(this, "Student ID and Course ID must be numbers.", "Input Error",
+                        JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        // Update: update selected/filled enrollment row
+        updateBtn.addActionListener(e -> {
+            try {
+                int enrollId = Integer.parseInt(enrollIdField.getText().trim());
+                int studentId = Integer.parseInt(studentIdField.getText().trim());
+                int courseId = Integer.parseInt(courseIdField.getText().trim());
+                String enrollDate = enrollDateField.getText().trim();
+                String grade = gradeField.getText().trim();
+
+                if (enrollDate.isEmpty() || grade.isEmpty()) {
+                    JOptionPane.showMessageDialog(this, "Please fill all fields!", "Input Error",
+                            JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                Enrollment enroll = new Enrollment(enrollId, studentId, courseId, enrollDate, grade);
+                boolean ok = enrollmentDAO.updateEnrollment(enroll);
+                if (ok) {
+                    JOptionPane.showMessageDialog(this, "Enrollment updated", "Success",
+                            JOptionPane.INFORMATION_MESSAGE);
+                    loadEnrollments();
+                    clearFields();
+                    enrollIdField.setEditable(true);
+                } else {
+                    JOptionPane.showMessageDialog(this, "Update failed", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (NumberFormatException ex) {
                 JOptionPane.showMessageDialog(this, "IDs must be numbers.", "Input Error", JOptionPane.ERROR_MESSAGE);
             }
         });
 
-        updateBtn.addActionListener(e -> {
-            // Implement update logic here
-        });
-
         clearBtn.addActionListener(e -> clearFields());
 
+        // Search button logic
+        searchBtn.addActionListener(e -> {
+            String keyword = searchField.getText().trim();
+            tableModel.setRowCount(0);
+            for (Enrollment enroll : enrollmentDAO.searchEnrollments(keyword)) {
+                tableModel.addRow(new Object[] {
+                        enroll.getEnrollId(),
+                        enroll.getStudentId(),
+                        enroll.getCourseId(),
+                        enroll.getEnrollDate(),
+                        enroll.getGrade()
+                });
+            }
+        });
+
+        // Clear search button logic
+        clearSearchBtn.addActionListener(e -> {
+            searchField.setText("");
+            loadEnrollments();
+        });
+
+        // popup menu
+        JPopupMenu popup = new JPopupMenu();
+        JMenuItem deleteItem = new JMenuItem("Delete");
+        JMenuItem updateItem = new JMenuItem("Update");
+        popup.add(deleteItem);
+        popup.add(updateItem);
+
+        enrollTable.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mousePressed(java.awt.event.MouseEvent e) {
+                int row = enrollTable.rowAtPoint(e.getPoint());
+                if (row >= 0) {
+                    enrollTable.getSelectionModel().setSelectionInterval(row, row);
+                    if (SwingUtilities.isRightMouseButton(e)) {
+                        popup.show(enrollTable, e.getX(), e.getY());
+                    }
+                }
+            }
+        });
+
+        deleteItem.addActionListener(e -> {
+            int row = enrollTable.getSelectedRow();
+            if (row >= 0) {
+                int id = (int) tableModel.getValueAt(row, 0);
+                int confirm = JOptionPane.showConfirmDialog(this, "Delete this enrollment?", "Confirm",
+                        JOptionPane.YES_NO_OPTION);
+                if (confirm == JOptionPane.YES_OPTION) {
+                    boolean ok = enrollmentDAO.deleteEnrollment(id);
+                    if (ok) {
+                        JOptionPane.showMessageDialog(this, "Deleted", "Success", JOptionPane.INFORMATION_MESSAGE);
+                        loadEnrollments();
+                        clearFields();
+                    } else {
+                        JOptionPane.showMessageDialog(this, "Delete failed", "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            }
+        });
+
+        updateItem.addActionListener(e -> {
+            int row = enrollTable.getSelectedRow();
+            if (row >= 0) {
+                enrollIdField.setText(tableModel.getValueAt(row, 0).toString());
+                studentIdField.setText(tableModel.getValueAt(row, 1).toString());
+                courseIdField.setText(tableModel.getValueAt(row, 2).toString());
+                enrollDateField.setText(tableModel.getValueAt(row, 3).toString());
+                gradeField.setText(tableModel.getValueAt(row, 4).toString());
+                enrollIdField.setEditable(false);
+            }
+        });
+        loadEnrollments();
         setVisible(true);
     }
 
@@ -186,5 +285,8 @@ public class EnrollmentPageFrame extends JFrame {
         courseIdField.setText("");
         enrollDateField.setText("");
         gradeField.setText("");
+        // allow entering new record id not editable (DB will generate), reset editable
+        // state
+        enrollIdField.setEditable(true);
     }
 }

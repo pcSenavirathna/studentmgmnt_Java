@@ -3,6 +3,8 @@ package StudentManagementSystem;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 public class CoursePageFrame extends JFrame {
     private JTextField courseIdField, courseNameField, creditsField, deptIdField, semesterField;
@@ -117,6 +119,62 @@ public class CoursePageFrame extends JFrame {
         JTable courseTable = new JTable(tableModel);
         JScrollPane tableScroll = new JScrollPane(courseTable);
         tableScroll.setBounds(450, 110, 590, 450);
+        add(tableScroll);
+
+        // ---------- Add popup menu for right-click row actions ----------
+        JPopupMenu popupMenu = new JPopupMenu();
+        JMenuItem deleteItem = new JMenuItem("Delete");
+        JMenuItem updateItem = new JMenuItem("Update");
+        popupMenu.add(deleteItem);
+        popupMenu.add(updateItem);
+
+        courseTable.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                int row = courseTable.rowAtPoint(e.getPoint());
+                if (row >= 0) {
+                    courseTable.getSelectionModel().setSelectionInterval(row, row);
+                    if (SwingUtilities.isRightMouseButton(e)) {
+                        popupMenu.show(courseTable, e.getX(), e.getY());
+                    }
+                }
+            }
+        });
+
+        // Delete action - calls CourseDAO.deleteCourse(int id)
+        deleteItem.addActionListener(e -> {
+            int row = courseTable.getSelectedRow();
+            if (row >= 0) {
+                int courseId = (int) tableModel.getValueAt(row, 0); // adjust column index if needed
+                int confirm = JOptionPane.showConfirmDialog(this, "Delete this course?", "Confirm Delete",
+                        JOptionPane.YES_NO_OPTION);
+                if (confirm == JOptionPane.YES_OPTION) {
+                    boolean success = courseDAO.deleteCourse(courseId);
+                    if (success) {
+                        JOptionPane.showMessageDialog(this, "Course deleted successfully!", "Success",
+                                JOptionPane.INFORMATION_MESSAGE);
+                        loadCourses();
+                        clearFields();
+                    } else {
+                        JOptionPane.showMessageDialog(this, "Failed to delete course!", "Error",
+                                JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            }
+        });
+
+        // Update action - populate form fields for editing
+        updateItem.addActionListener(e -> {
+            int row = courseTable.getSelectedRow();
+            if (row >= 0) {
+                courseIdField.setText(tableModel.getValueAt(row, 0).toString());
+                courseNameField.setText(tableModel.getValueAt(row, 1).toString());
+                creditsField.setText(tableModel.getValueAt(row, 2).toString());
+                deptIdField.setText(tableModel.getValueAt(row, 3).toString());
+                semesterField.setText(tableModel.getValueAt(row, 4).toString());
+                courseIdField.setEditable(false);
+            }
+        });
 
         // Add components to frame
         add(topPanel);
@@ -125,7 +183,6 @@ public class CoursePageFrame extends JFrame {
         add(searchField);
         add(searchBtn);
         add(clearSearchBtn);
-        add(tableScroll);
 
         // Add button logic
         addBtn.addActionListener(e -> {
@@ -158,11 +215,52 @@ public class CoursePageFrame extends JFrame {
 
         updateBtn.addActionListener(e -> {
             // Implement update logic here
+            try {
+                int courseId = Integer.parseInt(courseIdField.getText().trim());
+                String courseName = courseNameField.getText().trim();
+                int credits = Integer.parseInt(creditsField.getText().trim());
+                int deptId = Integer.parseInt(deptIdField.getText().trim());
+                String semester = semesterField.getText().trim();
+
+                if (courseName.isEmpty() || semester.isEmpty()) {
+                    JOptionPane.showMessageDialog(this, "Please fill all fields!", "Input Error",
+                            JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                Course course = new Course(courseId, courseName, credits, deptId, semester);
+                boolean success = courseDAO.updateCourse(course);
+                if (success) {
+                    JOptionPane.showMessageDialog(this, "Course updated successfully!", "Success",
+                            JOptionPane.INFORMATION_MESSAGE);
+                    loadCourses();
+                    clearFields();
+                } else {
+                    JOptionPane.showMessageDialog(this, "Failed to update course!", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(this, "IDs and credits must be numbers.", "Input Error",
+                        JOptionPane.ERROR_MESSAGE);
+            }
         });
 
+        // Search button logic
+        searchBtn.addActionListener(e -> {
+            String keyword = searchField.getText().trim();
+            if (!keyword.isEmpty()) {
+                loadCourses(courseDAO.searchCourses(keyword));
+            }
+        });
+
+        // Clear search button logic
+        clearSearchBtn.addActionListener(e -> {
+            searchField.setText("");
+            loadCourses(courseDAO.getAllCourses());
+        });
 
         clearBtn.addActionListener(e -> clearFields());
 
+        loadCourses();
         setVisible(true);
     }
 
@@ -175,6 +273,20 @@ public class CoursePageFrame extends JFrame {
                 course.getCredits(),
                 course.getDeptId(),
                 course.getSemester()
+            });
+        }
+    }
+
+    // NEW: overload to accept a list (used by search)
+    private void loadCourses(java.util.List<Course> courses) {
+        tableModel.setRowCount(0);
+        for (Course course : courses) {
+            tableModel.addRow(new Object[] {
+                    course.getCourseId(),
+                    course.getCourseName(),
+                    course.getCredits(),
+                    course.getDeptId(),
+                    course.getSemester()
             });
         }
     }
