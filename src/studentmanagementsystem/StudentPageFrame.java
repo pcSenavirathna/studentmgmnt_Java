@@ -11,11 +11,13 @@ import java.text.ParseException;
 
 public class StudentPageFrame extends JFrame {
     // Form fields
-    private JTextField studentIdField, nameField, nicField, emailField, deptIdField;
+    private JTextField studentIdField, nameField, nicField, emailField;
+    private JComboBox<Integer> deptCombo;
     private JSpinner dobSpinner;
     private JComboBox<String> genderCombo;
     private DefaultTableModel tableModel;
     private StudentDAO studentDAO = new StudentDAO();
+    private DepartmentDAO departmentDAO = new DepartmentDAO();
     private JTextField searchField;
     private JButton searchBtn, clearSearchBtn;
 
@@ -62,14 +64,40 @@ public class StudentPageFrame extends JFrame {
         nameField = new JTextField();
         nicField = new JTextField();
         dobSpinner = new JSpinner(new SpinnerDateModel());
-        dobSpinner.setEditor(new JSpinner.DateEditor(dobSpinner, "yyyy-MM-dd"));
+        JSpinner.DateEditor dateEditor = new JSpinner.DateEditor(dobSpinner, "yyyy-MM-dd");
+        dobSpinner.setEditor(dateEditor);
+        // make the displayed text non-editable and clickable
+        JFormattedTextField dobTextField = dateEditor.getTextField();
+        dobTextField.setEditable(false);
+        dobTextField.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        dobTextField.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                Window win = SwingUtilities.getWindowAncestor(dobTextField);
+                Frame owner = (win instanceof Frame) ? (Frame) win : null;
+                Date initial = (Date) dobSpinner.getValue();
+                DatePickerDialog picker = new DatePickerDialog(owner, initial);
+                picker.setLocationRelativeTo(dobTextField);
+                picker.setVisible(true);
+                Date picked = picker.getSelectedDate();
+                if (picked != null) {
+                    dobSpinner.setValue(picked);
+                }
+            }
+        });
+        dobSpinner.setBounds(150, 130, 220, 35); // keep same placement as before
+        formPanel.add(dobSpinner);
         genderCombo = new JComboBox<>(new String[]{"Male", "Female", "Other"});
         emailField = new JTextField();
-        deptIdField = new JTextField();
-
+        // Department combo populated from DB
+        deptCombo = new JComboBox<>();
+        for (Department d : departmentDAO.getAllDepartments()) {
+            deptCombo.addItem(d.getDeptId());
+        }
 
         String[] labels = {"Student ID", "Name", "NIC", "DOB", "Gender", "Email", "Department ID"};
-        JTextField[] fields = {studentIdField, nameField, nicField, null, null, emailField, deptIdField};
+        // leave last element null so we can place deptCombo explicitly
+        JTextField[] fields = { studentIdField, nameField, nicField, null, null, emailField, null };
         int y = 40;
         for (int i = 0; i < labels.length; i++) {
             // use JLabel (opaque) so text remains white instead of gray (disabled JButton)
@@ -88,6 +116,9 @@ public class StudentPageFrame extends JFrame {
             } else if (labels[i].equals("DOB")) {
                 dobSpinner.setBounds(150, y, 220, 35);
                 formPanel.add(dobSpinner);
+            } else if (labels[i].equals("Department ID")) {
+                deptCombo.setBounds(150, y, 220, 35);
+                formPanel.add(deptCombo);
             } else if (fields[i] != null) {
                 fields[i].setBounds(150, y, 220, 35);
                 fields[i].setFont(new Font("Arial", Font.PLAIN, 14));
@@ -200,7 +231,13 @@ public class StudentPageFrame extends JFrame {
                 }
                 genderCombo.setSelectedItem(tableModel.getValueAt(row, 4).toString());
                 emailField.setText(tableModel.getValueAt(row, 5).toString());
-                deptIdField.setText(tableModel.getValueAt(row, 6).toString());
+                // set selected department id in combo
+                try {
+                    Integer did = Integer.parseInt(tableModel.getValueAt(row, 6).toString());
+                    deptCombo.setSelectedItem(did);
+                } catch (Exception ex) {
+                    deptCombo.setSelectedIndex(-1);
+                }
             }
         });
 
@@ -225,11 +262,10 @@ public class StudentPageFrame extends JFrame {
             dob = sdf.format((Date) dobSpinner.getValue());
             String gender = (String) genderCombo.getSelectedItem();
             String email = emailField.getText().trim();
-            int deptId;
-            try {
-                deptId = Integer.parseInt(deptIdField.getText().trim());
-            } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(this, "Department ID must be a number.", "Input Error", JOptionPane.ERROR_MESSAGE);
+            Integer deptId = (Integer) deptCombo.getSelectedItem();
+            if (deptId == null) {
+                JOptionPane.showMessageDialog(this, "Please select a Department.", "Input Error",
+                        JOptionPane.ERROR_MESSAGE);
                 return;
             }
             if (name.isEmpty() || nic.isEmpty() || dob.isEmpty() || gender.isEmpty() || email.isEmpty()) {
@@ -240,7 +276,7 @@ public class StudentPageFrame extends JFrame {
                 JOptionPane.showMessageDialog(this, "DOB must be in YYYY-MM-DD format.", "Input Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            Student student = new Student(0, name, nic, email, dob, gender, deptId); // <-- Pass NIC here
+            Student student = new Student(0, name, nic, email, dob, gender, deptId); // deptId is Integer -> autounbox
             boolean success = studentDAO.addStudent(student);
             if (success) {
                 JOptionPane.showMessageDialog(this, "Student added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
@@ -265,11 +301,10 @@ public class StudentPageFrame extends JFrame {
             String dob = new SimpleDateFormat("yyyy-MM-dd").format((Date) dobSpinner.getValue());
             String gender = (String) genderCombo.getSelectedItem();
             String email = emailField.getText().trim();
-            int deptId;
-            try {
-                deptId = Integer.parseInt(deptIdField.getText().trim());
-            } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(this, "Department ID must be a number.", "Input Error", JOptionPane.ERROR_MESSAGE);
+            Integer deptId = (Integer) deptCombo.getSelectedItem();
+            if (deptId == null) {
+                JOptionPane.showMessageDialog(this, "Please select a Department.", "Input Error",
+                        JOptionPane.ERROR_MESSAGE);
                 return;
             }
             if (name.isEmpty() || nic.isEmpty() || dob.isEmpty() || gender.isEmpty() || email.isEmpty()) {
@@ -349,6 +384,7 @@ public class StudentPageFrame extends JFrame {
         dobSpinner.setValue(new Date());
         genderCombo.setSelectedIndex(0);
         emailField.setText("");
-        deptIdField.setText("");
+        if (deptCombo.getItemCount() > 0)
+            deptCombo.setSelectedIndex(-1);
     }
 }

@@ -2,14 +2,18 @@ package StudentManagementSystem;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.JList;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 public class CoursePageFrame extends JFrame {
-    private JTextField courseIdField, courseNameField, creditsField, deptIdField, semesterField;
+    private JTextField courseIdField, courseNameField, creditsField, semesterField;
+    private JComboBox<Department> deptCombo;
     private DefaultTableModel tableModel;
     private CourseDAO courseDAO = new CourseDAO();
+    private DepartmentDAO departmentDAO = new DepartmentDAO();
 
     public CoursePageFrame() {
         setTitle("Student Information Management System - Course");
@@ -52,11 +56,32 @@ public class CoursePageFrame extends JFrame {
         courseIdField = new JTextField();
         courseNameField = new JTextField();
         creditsField = new JTextField();
-        deptIdField = new JTextField();
         semesterField = new JTextField();
 
+        // Department combo populated from DB (stores Department objects, shows "id -
+        // name")
+        deptCombo = new JComboBox<>();
+        java.util.List<Department> deps = departmentDAO.getAllDepartments();
+        for (Department d : deps)
+            deptCombo.addItem(d);
+        deptCombo.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected,
+                    boolean cellHasFocus) {
+                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                if (value instanceof Department) {
+                    Department dep = (Department) value;
+                    setText(dep.getDeptId() + " - " + dep.getDeptName());
+                } else {
+                    setText(value == null ? "" : value.toString());
+                }
+                return this;
+            }
+        });
+        deptCombo.setMaximumRowCount(10); // vertical popup size
+
         String[] labels = {"Course ID", "Course Name", "Credits", "Department ID", "Semester"};
-        JTextField[] fields = {courseIdField, courseNameField, creditsField, deptIdField, semesterField};
+        JTextField[] fields = { courseIdField, courseNameField, creditsField, null, semesterField };
         int y = 30;
         for (int i = 0; i < labels.length; i++) {
             JLabel lbl = new JLabel(labels[i], SwingConstants.LEFT);
@@ -68,9 +93,14 @@ public class CoursePageFrame extends JFrame {
             lbl.setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 0));
             formPanel.add(lbl);
 
-            fields[i].setBounds(180, y, 210, 35);
-            fields[i].setFont(new Font("Arial", Font.PLAIN, 14));
-            formPanel.add(fields[i]);
+            if (labels[i].equals("Department ID")) {
+                deptCombo.setBounds(180, y, 210, 35);
+                formPanel.add(deptCombo);
+            } else {
+                fields[i].setBounds(180, y, 210, 35);
+                fields[i].setFont(new Font("Arial", Font.PLAIN, 14));
+                formPanel.add(fields[i]);
+            }
             y += 45;
         }
 
@@ -171,8 +201,23 @@ public class CoursePageFrame extends JFrame {
                 courseIdField.setText(tableModel.getValueAt(row, 0).toString());
                 courseNameField.setText(tableModel.getValueAt(row, 1).toString());
                 creditsField.setText(tableModel.getValueAt(row, 2).toString());
-                deptIdField.setText(tableModel.getValueAt(row, 3).toString());
                 semesterField.setText(tableModel.getValueAt(row, 4).toString());
+                try {
+                    int did = Integer.parseInt(tableModel.getValueAt(row, 3).toString());
+                    boolean found = false;
+                    for (int i = 0; i < deptCombo.getItemCount(); i++) {
+                        Department d = deptCombo.getItemAt(i);
+                        if (d != null && d.getDeptId() == did) {
+                            deptCombo.setSelectedIndex(i);
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found)
+                        deptCombo.setSelectedIndex(-1);
+                } catch (Exception ex) {
+                    deptCombo.setSelectedIndex(-1);
+                }
                 courseIdField.setEditable(false);
             }
         });
@@ -191,7 +236,13 @@ public class CoursePageFrame extends JFrame {
                 int courseId = Integer.parseInt(courseIdField.getText().trim());
                 String courseName = courseNameField.getText().trim();
                 int credits = Integer.parseInt(creditsField.getText().trim());
-                int deptId = Integer.parseInt(deptIdField.getText().trim());
+                Department selDept = (Department) deptCombo.getSelectedItem();
+                if (selDept == null) {
+                    JOptionPane.showMessageDialog(this, "Please select a Department.", "Input Error",
+                            JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                int deptId = selDept.getDeptId();
                 String semester = semesterField.getText().trim();
 
                 if (courseName.isEmpty() || semester.isEmpty()) {
@@ -220,7 +271,7 @@ public class CoursePageFrame extends JFrame {
                 int courseId = Integer.parseInt(courseIdField.getText().trim());
                 String courseName = courseNameField.getText().trim();
                 int credits = Integer.parseInt(creditsField.getText().trim());
-                int deptId = Integer.parseInt(deptIdField.getText().trim());
+                int deptId = ((Department) deptCombo.getSelectedItem()).getDeptId();
                 String semester = semesterField.getText().trim();
 
                 if (courseName.isEmpty() || semester.isEmpty()) {
@@ -296,7 +347,7 @@ public class CoursePageFrame extends JFrame {
         courseIdField.setText("");
         courseNameField.setText("");
         creditsField.setText("");
-        deptIdField.setText("");
         semesterField.setText("");
+        deptCombo.setSelectedIndex(-1);
     }
 }
