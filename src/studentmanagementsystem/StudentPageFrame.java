@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Date;
 import java.text.SimpleDateFormat;
 import java.text.ParseException;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 public class StudentPageFrame extends JFrame {
     // Form fields
@@ -256,27 +258,46 @@ public class StudentPageFrame extends JFrame {
         // Add button logic
         addBtn.addActionListener(e -> {
             String name = nameField.getText().trim();
-            String nic = nicField.getText().trim(); // <-- Add this line
-            String dob;
+            String nic = nicField.getText().trim();
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-            dob = sdf.format((Date) dobSpinner.getValue());
+            String dob = sdf.format((Date) dobSpinner.getValue());
             String gender = (String) genderCombo.getSelectedItem();
             String email = emailField.getText().trim();
             Integer deptId = (Integer) deptCombo.getSelectedItem();
-            if (deptId == null) {
-                JOptionPane.showMessageDialog(this, "Please select a Department.", "Input Error",
+
+            // Basic required checks
+            if (name.isEmpty() || nic.isEmpty() || dob.isEmpty() || gender == null || email.isEmpty()
+                    || deptId == null) {
+                JOptionPane.showMessageDialog(this, "Please fill all fields and select Department.", "Input Error",
                         JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            if (name.isEmpty() || nic.isEmpty() || dob.isEmpty() || gender.isEmpty() || email.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Please fill all fields!", "Input Error", JOptionPane.ERROR_MESSAGE);
+            // Name length check
+            if (name.length() < 2 || name.length() > 100) {
+                JOptionPane.showMessageDialog(this, "Name must be 2-100 characters.", "Input Error",
+                        JOptionPane.ERROR_MESSAGE);
                 return;
             }
+            // NIC basic validation (length 5-20)
+            if (nic.length() < 5 || nic.length() > 20) {
+                JOptionPane.showMessageDialog(this, "NIC must be 5-20 characters.", "Input Error",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            // DOB format already produced by spinner; still validate pattern
             if (!dob.matches("\\d{4}-\\d{2}-\\d{2}")) {
                 JOptionPane.showMessageDialog(this, "DOB must be in YYYY-MM-DD format.", "Input Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            Student student = new Student(0, name, nic, email, dob, gender, deptId); // deptId is Integer -> autounbox
+            // Email simple regex
+            Pattern emailPattern = Pattern.compile("^[\\w\\.-]+@[\\w\\.-]+\\.[a-zA-Z]{2,}$");
+            Matcher m = emailPattern.matcher(email);
+            if (!m.matches()) {
+                JOptionPane.showMessageDialog(this, "Invalid email address.", "Input Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            Student student = new Student(0, name, nic, email, dob, gender, deptId);
             boolean success = studentDAO.addStudent(student);
             if (success) {
                 JOptionPane.showMessageDialog(this, "Student added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
@@ -289,9 +310,15 @@ public class StudentPageFrame extends JFrame {
 
         // Update button logic
         updateBtn.addActionListener(e -> {
+            String idText = studentIdField.getText().trim();
+            if (idText.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Student ID is required to update.", "Input Error",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
+            }
             int studentId;
             try {
-                studentId = Integer.parseInt(studentIdField.getText().trim());
+                studentId = Integer.parseInt(idText);
             } catch (NumberFormatException ex) {
                 JOptionPane.showMessageDialog(this, "Student ID must be a number.", "Input Error", JOptionPane.ERROR_MESSAGE);
                 return;
@@ -313,6 +340,11 @@ public class StudentPageFrame extends JFrame {
             }
             if (!dob.matches("\\d{4}-\\d{2}-\\d{2}")) {
                 JOptionPane.showMessageDialog(this, "DOB must be in YYYY-MM-DD format.", "Input Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            Pattern emailPattern = Pattern.compile("^[\\w\\.-]+@[\\w\\.-]+\\.[a-zA-Z]{2,}$");
+            if (!emailPattern.matcher(email).matches()) {
+                JOptionPane.showMessageDialog(this, "Invalid email address.", "Input Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
             Student student = new Student(studentId, name, nic, email, dob, gender, deptId);

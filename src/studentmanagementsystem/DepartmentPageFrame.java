@@ -139,30 +139,44 @@ public class DepartmentPageFrame extends JFrame {
 
         // Add button logic
         addBtn.addActionListener(e -> {
+            String idText = deptIdField.getText().trim();
+            String deptName = deptNameField.getText().trim();
+            String building = buildingField.getText().trim();
+            String phone = phoneField.getText().trim();
+            String head = headField.getText().trim();
+
+            // Required checks
+            if (idText.isEmpty() || deptName.isEmpty() || building.isEmpty() || phone.isEmpty() || head.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Please fill all fields!", "Input Error",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            // Numeric ID
+            int deptId;
             try {
-                int deptId = Integer.parseInt(deptIdField.getText().trim());
-                String deptName = deptNameField.getText().trim();
-                String building = buildingField.getText().trim();
-                String phone = phoneField.getText().trim();
-                String head = headField.getText().trim();
-
-                if (deptName.isEmpty() || building.isEmpty() || phone.isEmpty() || head.isEmpty()) {
-                    JOptionPane.showMessageDialog(this, "Please fill all fields!", "Input Error", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-
-                Department dept = new Department(deptId, deptName, building, phone, head);
-                boolean success = departmentDAO.addDepartment(dept);
-
-                if (success) {
-                    JOptionPane.showMessageDialog(this, "Department added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-                    loadDepartments();
-                    clearFields();
-                } else {
-                    JOptionPane.showMessageDialog(this, "Failed to add department!", "Error", JOptionPane.ERROR_MESSAGE);
-                }
+                deptId = Integer.parseInt(idText);
             } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(this, "Department ID must be a number.", "Input Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Department ID must be a number.", "Input Error",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            // Phone digits check (basic)
+            if (!phone.matches("[\\d\\-\\+\\s]{5,20}")) {
+                JOptionPane.showMessageDialog(this, "Phone must contain digits (and optional +,-,space), length 5-20.",
+                        "Input Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            Department dept = new Department(deptId, deptName, building, phone, head);
+            boolean success = departmentDAO.addDepartment(dept);
+
+            if (success) {
+                JOptionPane.showMessageDialog(this, "Department added successfully!", "Success",
+                        JOptionPane.INFORMATION_MESSAGE);
+                loadDepartments();
+                clearFields();
+            } else {
+                JOptionPane.showMessageDialog(this, "Failed to add department!", "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
 
@@ -223,32 +237,43 @@ public class DepartmentPageFrame extends JFrame {
         // ---------- Wire existing Update button to save edits ----------
         // assume updateBtn is already created earlier in the frame
         updateBtn.addActionListener(ev -> {
+            String idText = deptIdField.getText().trim();
+            String name = deptNameField.getText().trim();
+            String building = buildingField.getText().trim();
+            String phone = phoneField.getText().trim();
+            String head = headField.getText().trim();
+
+            if (idText.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Department ID is required for update.", "Input Error",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            int id;
             try {
-                int id = Integer.parseInt(deptIdField.getText().trim());
-                String name = deptNameField.getText().trim();
-                String building = buildingField.getText().trim();
-                String phone = phoneField.getText().trim();
-                String head = headField.getText().trim();
-
-                if (name.isEmpty()) {
-                    JOptionPane.showMessageDialog(this, "Please fill required fields", "Input Error",
-                            JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-
-                Department d = new Department(id, name, building, phone, head);
-                boolean ok = departmentDAO.updateDepartment(d);
-                if (ok) {
-                    JOptionPane.showMessageDialog(this, "Department updated", "Success",
-                            JOptionPane.INFORMATION_MESSAGE);
-                    loadDepartments();
-                    clearFields();
-                    deptIdField.setEditable(true);
-                } else {
-                    JOptionPane.showMessageDialog(this, "Update failed", "Error", JOptionPane.ERROR_MESSAGE);
-                }
+                id = Integer.parseInt(idText);
             } catch (NumberFormatException ex) {
                 JOptionPane.showMessageDialog(this, "ID must be numeric", "Input Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            if (name.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Please fill required fields", "Input Error",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            if (!phone.matches("[\\d\\-\\+\\s]{5,20}")) {
+                JOptionPane.showMessageDialog(this, "Phone must contain digits (and optional +,-,space), length 5-20.",
+                        "Input Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            Department d = new Department(id, name, building, phone, head);
+            boolean ok = departmentDAO.updateDepartment(d);
+            if (ok) {
+                JOptionPane.showMessageDialog(this, "Department updated", "Success", JOptionPane.INFORMATION_MESSAGE);
+                loadDepartments();
+                clearFields();
+                deptIdField.setEditable(true);
+            } else {
+                JOptionPane.showMessageDialog(this, "Update failed", "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
 

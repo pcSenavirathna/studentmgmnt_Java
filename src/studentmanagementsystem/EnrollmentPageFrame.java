@@ -224,81 +224,89 @@ public class EnrollmentPageFrame extends JFrame {
         // Add button logic
         // Add: do NOT require enrollId (DB generates it)
         addBtn.addActionListener(e -> {
-            try {
-                Student selStudent = (Student) studentCombo.getSelectedItem();
-                Course selCourse = (Course) courseCombo.getSelectedItem();
-                if (selStudent == null || selCourse == null) {
-                    JOptionPane.showMessageDialog(this, "Select student and course.", "Input Error",
-                            JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-                int studentId = selStudent.getStudentId();
-                int courseId = selCourse.getCourseId();
-                String enrollDate = enrollDateField.getText().trim();
-                String grade = gradeField.getText().trim();
+            Student selStudent = (Student) studentCombo.getSelectedItem();
+            Course selCourse = (Course) courseCombo.getSelectedItem();
+            if (selStudent == null || selCourse == null) {
+                JOptionPane.showMessageDialog(this, "Select student and course.", "Input Error",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            String enrollDate = enrollDateField.getText().trim();
+            String grade = gradeField.getText().trim();
+            if (enrollDate.isEmpty() || grade.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Please fill all fields!", "Input Error",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            // date format validation (yyyy-MM-dd)
+            if (!enrollDate.matches("\\d{4}-\\d{2}-\\d{2}")) {
+                JOptionPane.showMessageDialog(this, "Enroll Date must be in YYYY-MM-DD format.", "Input Error",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
+            }
 
-                if (enrollDate.isEmpty() || grade.isEmpty()) {
-                    JOptionPane.showMessageDialog(this, "Please fill all fields!", "Input Error", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-
-                // pass 0 for enroll_id; DAO should populate the generated key back into the
-                // object
-                Enrollment enroll = new Enrollment(0, studentId, courseId, enrollDate, grade);
-                boolean success = enrollmentDAO.addEnrollment(enroll);
-                if (success) {
-                    // show generated id in the readonly field
-                    enrollIdField.setText(String.valueOf(enroll.getEnrollId()));
-                    JOptionPane.showMessageDialog(this, "Enrollment added successfully! ID: " + enroll.getEnrollId(),
-                            "Success", JOptionPane.INFORMATION_MESSAGE);
-                    loadEnrollments();
-                    // clear inputs except enroll id so user sees the generated id
-                    studentCombo.setSelectedIndex(-1);
-                    courseCombo.setSelectedIndex(-1);
-                    enrollDateField.setText("");
-                    gradeField.setText("");
-                } else {
-                    JOptionPane.showMessageDialog(this, "Failed to add enrollment!", "Error", JOptionPane.ERROR_MESSAGE);
-                }
-            } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(this, "IDs must be numbers.", "Input Error", JOptionPane.ERROR_MESSAGE);
+            int studentId = selStudent.getStudentId();
+            int courseId = selCourse.getCourseId();
+            Enrollment enroll = new Enrollment(0, studentId, courseId, enrollDate, grade);
+            boolean success = enrollmentDAO.addEnrollment(enroll);
+            if (success) {
+                enrollIdField.setText(String.valueOf(enroll.getEnrollId()));
+                JOptionPane.showMessageDialog(this, "Enrollment added successfully! ID: " + enroll.getEnrollId(),
+                        "Success", JOptionPane.INFORMATION_MESSAGE);
+                loadEnrollments();
+                studentCombo.setSelectedIndex(-1);
+                courseCombo.setSelectedIndex(-1);
+                enrollDateField.setText("");
+                gradeField.setText("");
+            } else {
+                JOptionPane.showMessageDialog(this, "Failed to add enrollment!", "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
 
         // Update: update selected/filled enrollment row
         updateBtn.addActionListener(e -> {
+            String idText = enrollIdField.getText().trim();
+            if (idText.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Select an enrollment row to update.", "Input Error",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            int enrollId;
             try {
-                int enrollId = Integer.parseInt(enrollIdField.getText().trim());
-                Student selStudent = (Student) studentCombo.getSelectedItem();
-                Course selCourse = (Course) courseCombo.getSelectedItem();
-                if (selStudent == null || selCourse == null) {
-                    JOptionPane.showMessageDialog(this, "Select student and course.", "Input Error",
-                            JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-                int studentId = selStudent.getStudentId();
-                int courseId = selCourse.getCourseId();
-                String enrollDate = enrollDateField.getText().trim();
-                String grade = gradeField.getText().trim();
-
-                if (enrollDate.isEmpty() || grade.isEmpty()) {
-                    JOptionPane.showMessageDialog(this, "Please fill all fields!", "Input Error",
-                            JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-
-                Enrollment enroll = new Enrollment(enrollId, studentId, courseId, enrollDate, grade);
-                boolean ok = enrollmentDAO.updateEnrollment(enroll);
-                if (ok) {
-                    JOptionPane.showMessageDialog(this, "Enrollment updated", "Success",
-                            JOptionPane.INFORMATION_MESSAGE);
-                    loadEnrollments();
-                    clearFields();
-                } else {
-                    JOptionPane.showMessageDialog(this, "Update failed", "Error", JOptionPane.ERROR_MESSAGE);
-                }
+                enrollId = Integer.parseInt(idText);
             } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(this, "IDs must be numbers.", "Input Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Enroll ID is invalid.", "Input Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            Student selStudent = (Student) studentCombo.getSelectedItem();
+            Course selCourse = (Course) courseCombo.getSelectedItem();
+            if (selStudent == null || selCourse == null) {
+                JOptionPane.showMessageDialog(this, "Select student and course.", "Input Error",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            String enrollDate = enrollDateField.getText().trim();
+            String grade = gradeField.getText().trim();
+            if (enrollDate.isEmpty() || grade.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Please fill all fields!", "Input Error",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            if (!enrollDate.matches("\\d{4}-\\d{2}-\\d{2}")) {
+                JOptionPane.showMessageDialog(this, "Enroll Date must be in YYYY-MM-DD format.", "Input Error",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            int studentId = selStudent.getStudentId();
+            int courseId = selCourse.getCourseId();
+            Enrollment enroll = new Enrollment(enrollId, studentId, courseId, enrollDate, grade);
+            boolean ok = enrollmentDAO.updateEnrollment(enroll);
+            if (ok) {
+                JOptionPane.showMessageDialog(this, "Enrollment updated", "Success", JOptionPane.INFORMATION_MESSAGE);
+                loadEnrollments();
+                clearFields();
+            } else {
+                JOptionPane.showMessageDialog(this, "Update failed", "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
 
