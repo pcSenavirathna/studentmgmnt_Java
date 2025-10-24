@@ -71,7 +71,7 @@ public class HomePageFrame extends JFrame {
         welcomeLabel.setBounds(40, 20, 400, 80);
         rightPanel.add(welcomeLabel);
 
-        String[] features = {"Student", "Course", "Department", "Enrollment"};
+        String[] features = { "Student", "Course", "Department", "Exames" };
         int y = 120;
         for (String feature : features) {
             JPanel circlePanel = new JPanel() {
@@ -114,11 +114,11 @@ public class HomePageFrame extends JFrame {
                 });
             }
 
-            // Add navigation for Enrollment button
-            if (feature.equals("Enrollment")) {
+            // Add navigation for Exames button
+            if (feature.equals("Exames")) {
                 featureButton.addActionListener(e -> {
                     dispose();
-                    new EnrollmentPageFrame();
+                    new ExamePageFrame(); // keep existing page class (rename if you want a new Exams frame)
                 });
             }
 
